@@ -20,6 +20,12 @@ const laneWidth = W / laneCount;
 const playerY = H - 86;
 const bestKey = "starDashBestStars";
 const goalStars = 10;
+const assetPaths = {
+  background: "assets/illustrations/starlight-background-v1.png",
+  rocket: "assets/illustrations/rocket-v1.png",
+  star: "assets/illustrations/star-v1.png",
+  meteor: "assets/illustrations/meteor-v1.png",
+};
 const stages = [
   { name: "しゅっぱつ！", speed: 240, obstacleGap: 1.25, pairs: false },
   { name: "はやく なってきた！", speed: 300, obstacleGap: 0.98, pairs: false },
@@ -40,7 +46,10 @@ const state = {
   starTimer: 0,
   lastTime: 0,
   best: Number(localStorage.getItem(bestKey) || 0),
+  assetsReady: false,
 };
+
+const assets = Object.fromEntries(Object.keys(assetPaths).map((name) => [name, new Image()]));
 
 bestEl.textContent = state.best;
 
@@ -49,6 +58,7 @@ function laneCenter(lane) {
 }
 
 function resetGame() {
+  if (!state.assetsReady) return;
   state.mode = "playing";
   state.lane = 2;
   state.targetX = laneCenter(state.lane);
@@ -257,31 +267,7 @@ function update(dt) {
 }
 
 function drawRoad() {
-  const sky = ctx.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0, "#142e63");
-  sky.addColorStop(0.45, "#0c2147");
-  sky.addColorStop(1, "#071329");
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, W, H);
-
-  const horizonGlow = ctx.createRadialGradient(W * 0.5, H * 0.21, 10, W * 0.5, H * 0.21, W * 0.55);
-  horizonGlow.addColorStop(0, "rgba(140, 205, 255, 0.28)");
-  horizonGlow.addColorStop(1, "rgba(140, 205, 255, 0)");
-  ctx.fillStyle = horizonGlow;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.save();
-  ctx.globalAlpha = 0.6;
-  ctx.fillStyle = "#bedcff";
-  ctx.beginPath();
-  ctx.arc(W * 0.12, H * 0.18, 52, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#8bb7ea";
-  ctx.beginPath();
-  ctx.arc(W * 0.09, H * 0.16, 12, 0, Math.PI * 2);
-  ctx.arc(W * 0.15, H * 0.22, 8, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
+  ctx.drawImage(assets.background, 0, 0, W, H);
 
   for (const star of state.backgroundStars) {
     ctx.globalAlpha = star.alpha;
@@ -294,8 +280,8 @@ function drawRoad() {
 
   const roadTop = H * 0.2;
   const road = ctx.createLinearGradient(0, roadTop, 0, H);
-  road.addColorStop(0, "rgba(16, 48, 88, 0.72)");
-  road.addColorStop(1, "rgba(5, 18, 41, 0.96)");
+  road.addColorStop(0, "rgba(8, 25, 57, 0.42)");
+  road.addColorStop(1, "rgba(4, 14, 35, 0.82)");
   ctx.fillStyle = road;
   ctx.fillRect(0, roadTop, W, H - roadTop);
 
@@ -329,40 +315,13 @@ function drawRoad() {
   }
   ctx.setLineDash([]);
 
-  ctx.fillStyle = "rgba(98, 144, 200, 0.42)";
-  for (let x = -40; x < W + 60; x += 90) {
-    ctx.beginPath();
-    ctx.arc(x, H + 18, 65, Math.PI, 0);
-    ctx.fill();
-  }
 }
 
 function drawCollectible(star) {
   ctx.save();
   ctx.translate(star.x, star.y);
   ctx.rotate(star.spin);
-  const glow = ctx.createRadialGradient(0, 0, 4, 0, 0, 42);
-  glow.addColorStop(0, "rgba(255, 247, 181, 0.9)");
-  glow.addColorStop(1, "rgba(255, 201, 87, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(0, 0, 42, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#ffc857";
-  ctx.strokeStyle = "#fff4c6";
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  for (let i = 0; i < 10; i++) {
-    const angle = -Math.PI / 2 + (Math.PI * 2 * i) / 10;
-    const radius = i % 2 ? 10 : 22;
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
+  ctx.drawImage(assets.star, -34, -31, 68, 63);
   ctx.restore();
 }
 
@@ -379,32 +338,8 @@ function drawPlayer() {
   ctx.arc(0, 10, 52, 0, Math.PI * 2);
   ctx.fill();
 
-  const flame = 16 + Math.sin(performance.now() / 70) * 5;
-  ctx.fillStyle = "#ffc857";
-  ctx.beginPath();
-  ctx.moveTo(-12, 28);
-  ctx.lineTo(0, 28 + flame);
-  ctx.lineTo(12, 28);
-  ctx.closePath();
-  ctx.fill();
-
-  const body = ctx.createLinearGradient(-28, -34, 28, 28);
-  body.addColorStop(0, "#c3f3ff");
-  body.addColorStop(0.55, "#4fd7f0");
-  body.addColorStop(1, "#2696d8");
-  ctx.fillStyle = body;
-  ctx.beginPath();
-  ctx.moveTo(0, -34);
-  ctx.lineTo(28, 28);
-  ctx.lineTo(0, 16);
-  ctx.lineTo(-28, 28);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = "#f5f7fb";
-  ctx.beginPath();
-  ctx.arc(0, -7, 10, 0, Math.PI * 2);
-  ctx.fill();
+  const bob = Math.sin(performance.now() / 90) * 2;
+  ctx.drawImage(assets.rocket, -48, -82 + bob, 96, 144);
   ctx.restore();
 }
 
@@ -412,26 +347,8 @@ function drawObstacle(obstacle) {
   ctx.save();
   ctx.translate(obstacle.x, obstacle.y);
   ctx.rotate(obstacle.spin);
-  ctx.fillStyle = "#f06d67";
-  ctx.strokeStyle = "#ffb86e";
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  for (let i = 0; i < 8; i++) {
-    const angle = (Math.PI * 2 * i) / 8;
-    const radius = i % 2 ? obstacle.size * 0.3 : obstacle.size * 0.56;
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = "rgba(125, 41, 57, 0.55)";
-  ctx.beginPath();
-  ctx.arc(-obstacle.size * 0.18, -obstacle.size * 0.12, obstacle.size * 0.12, 0, Math.PI * 2);
-  ctx.arc(obstacle.size * 0.2, obstacle.size * 0.16, obstacle.size * 0.09, 0, Math.PI * 2);
-  ctx.fill();
+  const size = obstacle.size * 1.45;
+  ctx.drawImage(assets.meteor, -size / 2, -size * 0.42, size, size * 0.83);
   ctx.restore();
 }
 
@@ -447,6 +364,11 @@ function drawParticles() {
 }
 
 function draw() {
+  if (!state.assetsReady) {
+    ctx.fillStyle = "#071329";
+    ctx.fillRect(0, 0, W, H);
+    return;
+  }
   drawRoad();
   for (const obstacle of state.obstacles) drawObstacle(obstacle);
   for (const star of state.collectibles) drawCollectible(star);
@@ -492,8 +414,22 @@ startButton.addEventListener("click", () => {
 });
 pauseButton.addEventListener("click", togglePause);
 
-makeBackgroundStars();
-state.targetX = laneCenter(state.lane);
-updateHud();
+Promise.all(Object.entries(assets).map(([name, image]) => new Promise((resolve, reject) => {
+  image.addEventListener("load", resolve, { once: true });
+  image.addEventListener("error", reject, { once: true });
+  image.src = assetPaths[name];
+}))).then(() => {
+  state.assetsReady = true;
+  startButton.disabled = false;
+  startButton.textContent = "しゅっぱつ！";
+  messageEl.textContent = "きいろい ほしを とりながら、あかい いんせきを よけよう。";
+  makeBackgroundStars();
+  state.targetX = laneCenter(state.lane);
+  updateHud();
+}).catch(() => {
+  messageEl.textContent = "えほんを ひらけなかったよ。もういちど ためしてね。";
+  startButton.textContent = "よみこみ しっぱい";
+});
+
 draw();
 requestAnimationFrame(loop);

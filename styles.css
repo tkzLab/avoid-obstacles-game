@@ -225,6 +225,12 @@ canvas {
   box-shadow: 0 10px 28px rgba(255, 195, 84, 0.32);
 }
 
+#startButton:disabled {
+  cursor: wait;
+  color: rgba(7, 17, 24, 0.62);
+  filter: saturate(0.5);
+}
+
 .how-to {
   margin: 14px 0 0;
   color: var(--muted);
