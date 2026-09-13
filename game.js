@@ -1,8 +1,12 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-const scoreEl = document.getElementById("score");
+const starsCollectedEl = document.getElementById("starsCollected");
 const bestEl = document.getElementById("best");
+const stageEl = document.getElementById("stage");
+const stageNameEl = document.getElementById("stageName");
+const meterFill = document.getElementById("meterFill");
 const overlay = document.getElementById("overlay");
+const overlayTitle = document.getElementById("overlayTitle");
 const messageEl = document.getElementById("message");
 const startButton = document.getElementById("startButton");
 const pauseButton = document.getElementById("pauseButton");
@@ -14,7 +18,13 @@ const H = canvas.height;
 const laneCount = 5;
 const laneWidth = W / laneCount;
 const playerY = H - 86;
-const bestKey = "starDashBestScore";
+const bestKey = "starDashBestStars";
+const goalStars = 10;
+const stages = [
+  { name: "しゅっぱつ！", speed: 240, obstacleGap: 1.25, pairs: false },
+  { name: "はやく なってきた！", speed: 300, obstacleGap: 0.98, pairs: false },
+  { name: "あと すこし！", speed: 365, obstacleGap: 0.76, pairs: true },
+];
 
 const state = {
   mode: "ready",
@@ -22,13 +32,14 @@ const state = {
   targetX: 0,
   obstacles: [],
   particles: [],
-  stars: [],
-  score: 0,
-  speed: 270,
+  backgroundStars: [],
+  collectibles: [],
+  starsCollected: 0,
+  speed: stages[0].speed,
   spawnTimer: 0,
+  starTimer: 0,
   lastTime: 0,
   best: Number(localStorage.getItem(bestKey) || 0),
-  input: { left: false, right: false },
 };
 
 bestEl.textContent = state.best;
@@ -42,18 +53,21 @@ function resetGame() {
   state.lane = 2;
   state.targetX = laneCenter(state.lane);
   state.obstacles = [];
+  state.collectibles = [];
   state.particles = [];
-  state.score = 0;
-  state.speed = 270;
-  state.spawnTimer = 0.35;
+  state.starsCollected = 0;
+  state.speed = stages[0].speed;
+  state.spawnTimer = 0.9;
+  state.starTimer = 0.45;
   state.lastTime = performance.now();
   overlay.classList.add("hidden");
   pauseButton.textContent = "II";
   pauseButton.setAttribute("aria-label", "いちじていし");
+  updateHud();
 }
 
-function makeStars() {
-  state.stars = Array.from({ length: 90 }, () => ({
+function makeBackgroundStars() {
+  state.backgroundStars = Array.from({ length: 90 }, () => ({
     x: Math.random() * W,
     y: Math.random() * H,
     r: Math.random() * 1.8 + 0.4,
@@ -63,8 +77,9 @@ function makeStars() {
 }
 
 function spawnObstacle() {
+  const stage = currentStage();
   const occupied = new Set();
-  const amount = Math.random() > 0.73 ? 2 : 1;
+  const amount = stage.pairs && Math.random() > 0.6 ? 2 : 1;
 
   while (occupied.size < amount) {
     occupied.add(Math.floor(Math.random() * laneCount));
@@ -83,6 +98,13 @@ function spawnObstacle() {
   }
 }
 
+function spawnCollectible() {
+  const openLanes = Array.from({ length: laneCount }, (_, lane) => lane)
+    .filter((lane) => !state.obstacles.some((obstacle) => obstacle.lane === lane && obstacle.y < 160));
+  const lane = openLanes.length ? openLanes[Math.floor(Math.random() * openLanes.length)] : Math.floor(Math.random() * laneCount);
+  state.collectibles.push({ lane, x: laneCenter(lane), y: -42, spin: Math.random() * Math.PI * 2 });
+}
+
 function moveLane(direction) {
   if (state.mode !== "playing") return;
   state.lane = Math.max(0, Math.min(laneCount - 1, state.lane + direction));
@@ -90,30 +112,60 @@ function moveLane(direction) {
 }
 
 function setOverlay(title, message, buttonText) {
-  overlay.querySelector("h1").textContent = title;
+  overlayTitle.textContent = title;
   messageEl.textContent = message;
   startButton.textContent = buttonText;
   overlay.classList.remove("hidden");
 }
 
-function endGame() {
-  state.mode = "over";
-  state.best = Math.max(state.best, Math.floor(state.score));
-  localStorage.setItem(bestKey, String(state.best));
-  bestEl.textContent = state.best;
+function currentStage() {
+  if (state.starsCollected >= 7) return stages[2];
+  if (state.starsCollected >= 3) return stages[1];
+  return stages[0];
+}
 
-  for (let i = 0; i < 28; i++) {
+function stageNumber() {
+  return stages.indexOf(currentStage()) + 1;
+}
+
+function updateHud() {
+  starsCollectedEl.textContent = state.starsCollected;
+  stageEl.textContent = stageNumber();
+  stageNameEl.textContent = currentStage().name;
+  meterFill.style.width = `${(state.starsCollected / goalStars) * 100}%`;
+}
+
+function burst(color = "#ffc857") {
+  for (let i = 0; i < 16; i++) {
     state.particles.push({
       x: state.targetX,
       y: playerY,
-      vx: Math.cos((Math.PI * 2 * i) / 28) * (90 + Math.random() * 170),
-      vy: Math.sin((Math.PI * 2 * i) / 28) * (90 + Math.random() * 170),
-      life: 0.75,
-      color: i % 2 ? "#47d7ff" : "#ffc857",
+      vx: Math.cos((Math.PI * 2 * i) / 16) * (70 + Math.random() * 140),
+      vy: Math.sin((Math.PI * 2 * i) / 16) * (70 + Math.random() * 140),
+      life: 0.55 + Math.random() * 0.35,
+      color,
     });
   }
+}
 
-  setOverlay("おしまい！", `${Math.floor(state.score)}てん。よく がんばったね！`, "もういちど");
+function endGame() {
+  state.mode = "over";
+  state.best = Math.max(state.best, state.starsCollected);
+  localStorage.setItem(bestKey, String(state.best));
+  bestEl.textContent = state.best;
+
+  burst("#ff6b6b");
+
+  setOverlay("おしまい！", `ほしを ${state.starsCollected}こ あつめたよ。もういちど たびにでよう！`, "もういちど");
+}
+
+function finishGame() {
+  state.mode = "clear";
+  state.best = Math.max(state.best, state.starsCollected);
+  localStorage.setItem(bestKey, String(state.best));
+  bestEl.textContent = state.best;
+  burst("#6dde8a");
+  setOverlay("やったね！", "10この ほしを あつめたよ。すてきな うちゅうのたび だったね！", "もういちど");
 }
 
 function togglePause() {
@@ -134,7 +186,7 @@ function togglePause() {
 function update(dt) {
   const active = state.mode === "playing";
 
-  for (const star of state.stars) {
+  for (const star of state.backgroundStars) {
     star.y += star.speed * dt * (active ? 1.6 : 0.25);
     if (star.y > H) {
       star.y = -4;
@@ -153,13 +205,18 @@ function update(dt) {
   if (!active) return;
 
   state.targetX += (laneCenter(state.lane) - state.targetX) * Math.min(1, dt * 14);
-  state.speed += dt * 8;
-  state.score += dt * (10 + state.speed / 34);
+  const stage = currentStage();
+  state.speed += (stage.speed - state.speed) * Math.min(1, dt * 1.8);
   state.spawnTimer -= dt;
+  state.starTimer -= dt;
 
   if (state.spawnTimer <= 0) {
     spawnObstacle();
-    state.spawnTimer = Math.max(0.36, 0.92 - state.speed / 720 + Math.random() * 0.18);
+    state.spawnTimer = stage.obstacleGap + Math.random() * 0.28;
+  }
+  if (state.starTimer <= 0) {
+    spawnCollectible();
+    state.starTimer = 0.8 + Math.random() * 0.42;
   }
 
   for (const obstacle of state.obstacles) {
@@ -167,6 +224,11 @@ function update(dt) {
     obstacle.spin += obstacle.spinSpeed * dt * 4;
   }
   state.obstacles = state.obstacles.filter((obstacle) => obstacle.y < H + 100);
+  for (const star of state.collectibles) {
+    star.y += state.speed * dt * 0.9;
+    star.spin += dt * 4;
+  }
+  state.collectibles = state.collectibles.filter((star) => star.y < H + 80);
 
   const playerRadius = 28;
   for (const obstacle of state.obstacles) {
@@ -175,11 +237,23 @@ function update(dt) {
     const hitDistance = obstacle.size / 2 + playerRadius - 6;
     if (Math.hypot(dx, dy) < hitDistance) {
       endGame();
-      break;
+      return;
     }
   }
 
-  scoreEl.textContent = Math.floor(state.score);
+  for (let i = state.collectibles.length - 1; i >= 0; i--) {
+    const star = state.collectibles[i];
+    if (Math.hypot(star.x - state.targetX, star.y - playerY) < 42) {
+      state.collectibles.splice(i, 1);
+      state.starsCollected += 1;
+      burst("#ffc857");
+      updateHud();
+      if (state.starsCollected >= goalStars) {
+        finishGame();
+        return;
+      }
+    }
+  }
 }
 
 function drawRoad() {
@@ -190,7 +264,7 @@ function drawRoad() {
   ctx.fillRect(0, 0, W, H);
 
   ctx.fillStyle = "#ffffff";
-  for (const star of state.stars) {
+  for (const star of state.backgroundStars) {
     ctx.globalAlpha = star.alpha;
     ctx.beginPath();
     ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
@@ -209,6 +283,28 @@ function drawRoad() {
     ctx.stroke();
   }
   ctx.setLineDash([]);
+}
+
+function drawCollectible(star) {
+  ctx.save();
+  ctx.translate(star.x, star.y);
+  ctx.rotate(star.spin);
+  ctx.fillStyle = "#ffc857";
+  ctx.strokeStyle = "#fff4c6";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const angle = -Math.PI / 2 + (Math.PI * 2 * i) / 10;
+    const radius = i % 2 ? 10 : 22;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawPlayer() {
@@ -277,6 +373,7 @@ function drawParticles() {
 function draw() {
   drawRoad();
   for (const obstacle of state.obstacles) drawObstacle(obstacle);
+  for (const star of state.collectibles) drawCollectible(star);
   drawPlayer();
   drawParticles();
 }
@@ -299,6 +396,18 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+let touchStartX = null;
+canvas.addEventListener("pointerdown", (event) => {
+  touchStartX = event.clientX;
+});
+canvas.addEventListener("pointerup", (event) => {
+  if (touchStartX === null) return;
+  const distance = event.clientX - touchStartX;
+  if (Math.abs(distance) >= 28) moveLane(distance > 0 ? 1 : -1);
+  touchStartX = null;
+});
+canvas.addEventListener("pointercancel", () => { touchStartX = null; });
+
 leftButton.addEventListener("pointerdown", () => moveLane(-1));
 rightButton.addEventListener("pointerdown", () => moveLane(1));
 startButton.addEventListener("click", () => {
@@ -307,7 +416,8 @@ startButton.addEventListener("click", () => {
 });
 pauseButton.addEventListener("click", togglePause);
 
-makeStars();
+makeBackgroundStars();
 state.targetX = laneCenter(state.lane);
+updateHud();
 draw();
 requestAnimationFrame(loop);

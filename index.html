@@ -3,36 +3,46 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>避けろ！スターダッシュ</title>
+    <title>スターダッシュ ほしあつめ</title>
+    <meta name="description" content="ロケットをうごかして、10このほしをあつめよう。">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <main class="game-shell" aria-label="避けろ！スターダッシュ">
+    <main class="game-shell" aria-label="スターダッシュ ほしあつめ">
+      <header class="game-title">
+        <p>ロケットで ほしのたび</p>
+        <h1>スターダッシュ</h1>
+      </header>
       <section class="hud" aria-label="ゲーム情報">
-        <div>
-          <span class="label">てんすう</span>
-          <strong id="score">0</strong>
+        <div class="star-meter">
+          <span class="label">あつめた ほし</span>
+          <strong><span id="starsCollected">0</span><small> / 10</small></strong>
+          <div class="meter-track" aria-hidden="true"><i id="meterFill"></i></div>
         </div>
-        <div>
-          <span class="label">さいこうきろく</span>
-          <strong id="best">0</strong>
+        <div class="status-card">
+          <span class="label">いまの ステージ</span>
+          <strong id="stage">1</strong>
+          <span class="stage-name" id="stageName">しゅっぱつ！</span>
         </div>
+        <div class="record-card"><span>きろく</span><strong id="best">0</strong></div>
         <button id="pauseButton" type="button" aria-label="いちじていし">II</button>
       </section>
 
-      <canvas id="game" width="960" height="540" aria-label="障害物を避けるゲーム画面"></canvas>
+      <canvas id="game" width="960" height="540" aria-label="ロケットでほしをあつめるゲーム画面"></canvas>
 
       <section id="overlay" class="overlay">
         <div class="panel">
-          <h1>スターダッシュ</h1>
-          <p id="message">障害物を避けて、できるだけ遠くまで進もう。</p>
-          <button id="startButton" type="button">はじめる</button>
+          <p class="panel-kicker">ほしを 10こ あつめよう</p>
+          <h2 id="overlayTitle">スターダッシュ</h2>
+          <p id="message">きいろい ほしを とりながら、あかい いんせきを よけよう。</p>
+          <button id="startButton" type="button">しゅっぱつ！</button>
+          <p class="how-to">← → ボタン や スワイプで うごかせるよ</p>
         </div>
       </section>
 
       <section class="controls" aria-label="操作">
-        <button class="move-button" id="leftButton" type="button" aria-label="ひだりへ いどう">←</button>
-        <button class="move-button" id="rightButton" type="button" aria-label="みぎへ いどう">→</button>
+        <button class="move-button" id="leftButton" type="button" aria-label="ひだりへ いどう"><span>←</span>ひだり</button>
+        <button class="move-button" id="rightButton" type="button" aria-label="みぎへ いどう">みぎ<span>→</span></button>
       </section>
     </main>
 
