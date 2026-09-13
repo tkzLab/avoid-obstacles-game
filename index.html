@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>避けろ！スターダッシュ</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="game-shell" aria-label="避けろ！スターダッシュ">
+      <section class="hud" aria-label="ゲーム情報">
+        <div>
+          <span class="label">てんすう</span>
+          <strong id="score">0</strong>
+        </div>
+        <div>
+          <span class="label">さいこうきろく</span>
+          <strong id="best">0</strong>
+        </div>
+        <button id="pauseButton" type="button" aria-label="いちじていし">II</button>
+      </section>
+
+      <canvas id="game" width="960" height="540" aria-label="障害物を避けるゲーム画面"></canvas>
+
+      <section id="overlay" class="overlay">
+        <div class="panel">
+          <h1>スターダッシュ</h1>
+          <p id="message">障害物を避けて、できるだけ遠くまで進もう。</p>
+          <button id="startButton" type="button">はじめる</button>
+        </div>
+      </section>
+
+      <section class="controls" aria-label="操作">
+        <button class="move-button" id="leftButton" type="button" aria-label="ひだりへ いどう">←</button>
+        <button class="move-button" id="rightButton" type="button" aria-label="みぎへ いどう">→</button>
+      </section>
+    </main>
+
+    <script src="game.js"></script>
+  </body>
+</html>
