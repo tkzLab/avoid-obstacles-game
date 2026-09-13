@@ -257,38 +257,97 @@ function update(dt) {
 }
 
 function drawRoad() {
-  const road = ctx.createLinearGradient(0, 0, 0, H);
-  road.addColorStop(0, "#161f2d");
-  road.addColorStop(1, "#0d1119");
-  ctx.fillStyle = road;
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, "#142e63");
+  sky.addColorStop(0.45, "#0c2147");
+  sky.addColorStop(1, "#071329");
+  ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, H);
 
-  ctx.fillStyle = "#ffffff";
+  const horizonGlow = ctx.createRadialGradient(W * 0.5, H * 0.21, 10, W * 0.5, H * 0.21, W * 0.55);
+  horizonGlow.addColorStop(0, "rgba(140, 205, 255, 0.28)");
+  horizonGlow.addColorStop(1, "rgba(140, 205, 255, 0)");
+  ctx.fillStyle = horizonGlow;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.save();
+  ctx.globalAlpha = 0.6;
+  ctx.fillStyle = "#bedcff";
+  ctx.beginPath();
+  ctx.arc(W * 0.12, H * 0.18, 52, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#8bb7ea";
+  ctx.beginPath();
+  ctx.arc(W * 0.09, H * 0.16, 12, 0, Math.PI * 2);
+  ctx.arc(W * 0.15, H * 0.22, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
   for (const star of state.backgroundStars) {
     ctx.globalAlpha = star.alpha;
+    ctx.fillStyle = "#fff5c7";
     ctx.beginPath();
     ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.globalAlpha = 1;
 
+  const roadTop = H * 0.2;
+  const road = ctx.createLinearGradient(0, roadTop, 0, H);
+  road.addColorStop(0, "rgba(16, 48, 88, 0.72)");
+  road.addColorStop(1, "rgba(5, 18, 41, 0.96)");
+  ctx.fillStyle = road;
+  ctx.fillRect(0, roadTop, W, H - roadTop);
+
+  const roadGlow = ctx.createLinearGradient(0, roadTop, 0, H);
+  roadGlow.addColorStop(0, "rgba(255, 223, 130, 0.05)");
+  roadGlow.addColorStop(1, "rgba(255, 223, 130, 0.2)");
+  ctx.fillStyle = roadGlow;
+  ctx.fillRect(0, roadTop, W, H - roadTop);
+
+  ctx.strokeStyle = "rgba(255, 226, 145, 0.72)";
+  ctx.lineWidth = 3;
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = "rgba(255, 203, 93, 0.65)";
+  ctx.beginPath();
+  ctx.moveTo(2, roadTop);
+  ctx.lineTo(2, H);
+  ctx.moveTo(W - 2, roadTop);
+  ctx.lineTo(W - 2, H);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
   for (let i = 1; i < laneCount; i++) {
     const x = i * laneWidth;
-    ctx.strokeStyle = "rgba(255,255,255,0.13)";
-    ctx.lineWidth = 2;
-    ctx.setLineDash([18, 22]);
+    ctx.strokeStyle = "rgba(221, 237, 255, 0.34)";
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([14, 24]);
     ctx.beginPath();
-    ctx.moveTo(x, 0);
+    ctx.moveTo(x, roadTop);
     ctx.lineTo(x, H);
     ctx.stroke();
   }
   ctx.setLineDash([]);
+
+  ctx.fillStyle = "rgba(98, 144, 200, 0.42)";
+  for (let x = -40; x < W + 60; x += 90) {
+    ctx.beginPath();
+    ctx.arc(x, H + 18, 65, Math.PI, 0);
+    ctx.fill();
+  }
 }
 
 function drawCollectible(star) {
   ctx.save();
   ctx.translate(star.x, star.y);
   ctx.rotate(star.spin);
+  const glow = ctx.createRadialGradient(0, 0, 4, 0, 0, 42);
+  glow.addColorStop(0, "rgba(255, 247, 181, 0.9)");
+  glow.addColorStop(1, "rgba(255, 201, 87, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(0, 0, 42, 0, Math.PI * 2);
+  ctx.fill();
   ctx.fillStyle = "#ffc857";
   ctx.strokeStyle = "#fff4c6";
   ctx.lineWidth = 3;
@@ -312,6 +371,14 @@ function drawPlayer() {
   ctx.save();
   ctx.translate(x, playerY);
 
+  const halo = ctx.createRadialGradient(0, 10, 4, 0, 10, 52);
+  halo.addColorStop(0, "rgba(93, 245, 210, 0.48)");
+  halo.addColorStop(1, "rgba(93, 245, 210, 0)");
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(0, 10, 52, 0, Math.PI * 2);
+  ctx.fill();
+
   const flame = 16 + Math.sin(performance.now() / 70) * 5;
   ctx.fillStyle = "#ffc857";
   ctx.beginPath();
@@ -321,7 +388,11 @@ function drawPlayer() {
   ctx.closePath();
   ctx.fill();
 
-  ctx.fillStyle = "#47d7ff";
+  const body = ctx.createLinearGradient(-28, -34, 28, 28);
+  body.addColorStop(0, "#c3f3ff");
+  body.addColorStop(0.55, "#4fd7f0");
+  body.addColorStop(1, "#2696d8");
+  ctx.fillStyle = body;
   ctx.beginPath();
   ctx.moveTo(0, -34);
   ctx.lineTo(28, 28);
@@ -341,8 +412,8 @@ function drawObstacle(obstacle) {
   ctx.save();
   ctx.translate(obstacle.x, obstacle.y);
   ctx.rotate(obstacle.spin);
-  ctx.fillStyle = "#ff5f68";
-  ctx.strokeStyle = "#ffc857";
+  ctx.fillStyle = "#f06d67";
+  ctx.strokeStyle = "#ffb86e";
   ctx.lineWidth = 4;
   ctx.beginPath();
   for (let i = 0; i < 8; i++) {
@@ -356,6 +427,11 @@ function drawObstacle(obstacle) {
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
+  ctx.fillStyle = "rgba(125, 41, 57, 0.55)";
+  ctx.beginPath();
+  ctx.arc(-obstacle.size * 0.18, -obstacle.size * 0.12, obstacle.size * 0.12, 0, Math.PI * 2);
+  ctx.arc(obstacle.size * 0.2, obstacle.size * 0.16, obstacle.size * 0.09, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 }
 

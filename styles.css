@@ -1,12 +1,12 @@
 :root {
   color-scheme: dark;
-  --bg: #0b1221;
-  --panel: rgba(13, 23, 42, 0.92);
-  --line: rgba(255, 255, 255, 0.14);
+  --bg: #071329;
+  --panel: rgba(8, 25, 56, 0.9);
+  --line: rgba(202, 229, 255, 0.24);
   --text: #f5f7fb;
   --muted: #9fa8b8;
-  --cyan: #47d7ff;
-  --amber: #ffc857;
+  --cyan: #5eddf2;
+  --amber: #ffcf64;
   --red: #ff6b6b;
   --green: #6dde8a;
   font-family: "Hiragino Maru Gothic ProN", "Yu Gothic", ui-rounded, system-ui, sans-serif;
@@ -20,7 +20,10 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: radial-gradient(circle at 50% -20%, #35568c 0%, var(--bg) 54%);
+  background:
+    radial-gradient(circle at 18% 8%, rgba(120, 187, 255, 0.3) 0 2px, transparent 3px),
+    radial-gradient(circle at 80% 18%, rgba(255, 237, 166, 0.3) 0 1px, transparent 2px),
+    radial-gradient(ellipse at 50% -25%, #2d5f9c 0%, #10274e 42%, var(--bg) 76%);
   color: var(--text);
 }
 
@@ -44,8 +47,13 @@ body {
 
 .game-title p,
 .panel-kicker {
-  margin: 0 0 4px;
-  color: var(--amber);
+  width: fit-content;
+  margin: 0 auto 6px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 219, 126, 0.38);
+  border-radius: 999px;
+  color: #ffe3a0;
+  background: rgba(11, 33, 71, 0.58);
   font-size: 13px;
   font-weight: 800;
 }
@@ -53,7 +61,8 @@ body {
 .game-title h1 {
   margin: 0;
   font-size: clamp(28px, 5vw, 42px);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
+  text-shadow: 0 3px 22px rgba(130, 213, 255, 0.52);
 }
 
 .hud {
@@ -67,7 +76,7 @@ body {
 .hud button {
   height: 48px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.07);
+  background: linear-gradient(145deg, rgba(41, 77, 126, 0.62), rgba(11, 29, 61, 0.82));
   backdrop-filter: blur(10px);
   border-radius: 14px;
 }
@@ -116,7 +125,8 @@ body {
   width: 0;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--amber), #ffe9a2);
+  background: linear-gradient(90deg, #ffbb51, #ffe6a1 58%, #fff7ca);
+  box-shadow: 0 0 14px rgba(255, 205, 96, 0.6);
   transition: width 220ms ease;
 }
 
@@ -164,8 +174,8 @@ canvas {
   display: block;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: #121722;
-  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.35);
+  background: #0e2a56;
+  box-shadow: 0 24px 72px rgba(1, 11, 31, 0.6), inset 0 0 0 1px rgba(255, 231, 157, 0.1);
   touch-action: none;
 }
 
@@ -186,7 +196,9 @@ canvas {
   padding: 24px;
   border: 1px solid var(--line);
   border-radius: 22px;
-  background: var(--panel);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(77, 144, 206, 0.22), transparent 60%),
+    var(--panel);
   text-align: center;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   pointer-events: auto;
@@ -208,9 +220,9 @@ canvas {
   width: min(100%, 220px);
   height: 52px;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--cyan), #6dffb8);
+  background: linear-gradient(135deg, #ffcc67, #ffe8aa);
   color: #071118;
-  box-shadow: 0 12px 30px rgba(71, 215, 255, 0.22);
+  box-shadow: 0 10px 28px rgba(255, 195, 84, 0.32);
 }
 
 .how-to {
@@ -230,7 +242,8 @@ canvas {
   height: 60px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(155deg, rgba(92, 151, 205, 0.52), rgba(20, 48, 94, 0.88));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13);
   display: flex;
   align-items: center;
   justify-content: center;
